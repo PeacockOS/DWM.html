@@ -1,0 +1,32 @@
+:root {
+    font-family: "Noto Sans", sans-serif;
+    scrollbar-width: thin;
+    --mdui-color-background: var(--mdui-color-primary-container);
+}
+
+@supports selector(::-webkit-scrollbar) {
+    :root {
+        scrollbar-width: unset;
+    }
+    *::-webkit-scrollbar {
+        background: none;
+        --scrollbar-width: .4rem;
+        height: var(--scrollbar-width);
+        width: var(--scrollbar-width);
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+        --scrollbar-width: .2rem;
+    }
+    *::-webkit-scrollbar-button {
+        display: none;
+    }
+    *::-webkit-scrollbar-thumb {
+        background-color: rgb(var(--mdui-color-primary));
+    }
+    *::-webkit-scrollbar-track {
+        background-color: rgb(var(--mdui-color-inverse-primary));
+    }
+    *::-webkit-scrollbar-thumb, *::-webkit-scrollbar-track {
+        border-radius: .2rem;
+    }
+}

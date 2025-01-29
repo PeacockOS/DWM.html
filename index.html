@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" />
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>Peacock OS Desktop</title>
+    <link rel="stylesheet" href="/node_modules/mdui/mdui.css" />
+    <link rel="stylesheet" href="/node_modules/material-icons/iconfont/material-icons.css" />
+    <link rel="stylesheet" href="/node_modules/@fontsource/noto-sans/400.css" />
+    <link rel="stylesheet" href="/node_modules/@fontsource/noto-sans/500.css" />
+    <link rel="stylesheet" href="/common.css" />
+    <link rel="stylesheet/less" href="/index.less" />
+    <script src="/node_modules/less/dist/less.min.js"></script>
+    <script src="/node_modules/mdui/mdui.global.js"></script>
+  </head>
+  <body>
+    <template id="pkWindowTemplate">
+      <mdui-top-app-bar class="titleBar" variant="tiny">
+        <mdui-tooltip open-delay="1000" content="$tr('Back')">
+          <mdui-button-icon name="back" icon="arrow_back"></mdui-button-icon>
+        </mdui-tooltip>
+        <mdui-top-app-bar-title></mdui-top-app-bar-title>
+        <mdui-tooltip open-delay="1000" content="$tr('Minimize')">
+          <mdui-button-icon name="minimize" icon="minimize"></mdui-button-icon>
+        </mdui-tooltip>
+        <mdui-tooltip open-delay="1000" content="$tr('Maximize')">
+          <mdui-button-icon name="maximize" icon="crop_square"></mdui-button-icon>
+        </mdui-tooltip>
+        <mdui-tooltip open-delay="1000" content="$tr('Restore')">
+          <mdui-button-icon name="restore" icon="flip_to_front"></mdui-button-icon>
+        </mdui-tooltip>
+        <mdui-tooltip open-delay="1000" content="$tr('Close')">
+          <mdui-button-icon name="close" icon="close"></mdui-button-icon>
+        </mdui-tooltip>
+      </mdui-top-app-bar>
+      <div class="hands">
+        <div class="i1"></div><div class="i2"></div><div class="i3"></div>
+        <div class="i4"></div>                      <div class="i6"></div>
+        <div class="i7"></div><div class="i8"></div><div class="i9"></div>
+      </div>
+      <iframe class="content" src="demo.html"></iframe>
+    </template>
+
+    <div id="screen">
+      <div id="windows"></div>
+      <div id="background"></div>
+      <div id="launcher" class="popup-card hidden">
+        <mdui-text-field id="search" clearable clear-icon="clear" inputmode="search" placeholder="$tr('Search')">
+          <mdui-icon slot="icon" name="search"></mdui-icon>
+        </mdui-text-field>
+      </div>
+      <mdui-bottom-app-bar id="taskbar">
+        <mdui-button-icon id="apps" icon="circle--outlined" selectable data-toggle="#launcher"></mdui-button-icon>
+        <div id="windowList"></div>
+        <mdui-button-icon class="large-button" selectable>
+          <mdui-icon part="icon" name="network_wifi"></mdui-icon>
+          <mdui-icon part="icon" name="battery_charging_full"></mdui-icon>
+        </mdui-button-icon>
+        <mdui-button-icon id="time" class="large-button icon-text" selectable>
+          12:34
+        </mdui-button-icon>
+      </mdui-bottom-app-bar>
+    </div>
+    <script>const exports=new Object;const require=name=>{return window[name]}</script>
+    <script src="/js/main.js"></script>
+  </body>
+</html>
