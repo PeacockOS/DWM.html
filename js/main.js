@@ -66,30 +66,9 @@ class SurfaceManager {
     constructor(screen) {
         this.evtListenerCnt = 0;
         this.screen = screen;
-        this.ptrSurface = document.createElement("div");
-        this.ptrSurface.className = "ptrSurface";
-        this.ptrSurface.style.display = "none";
-        this.screen.appendChild(this.ptrSurface);
         this.addEventListener = this.screen.addEventListener.bind(this.screen);
         this.removeEventListener = this.screen.removeEventListener.bind(this.screen);
         this.dispatchEvent = this.screen.dispatchEvent.bind(this.screen);
-    }
-    addPtrEventListener(type, listener, options) {
-        this.evtListenerCnt++;
-        if (this.evtListenerCnt) {
-            this.ptrSurface.style.display = "";
-        }
-        this.ptrSurface.addEventListener(type, listener, options);
-    }
-    removePtrEventListener(type, listener, options) {
-        this.ptrSurface.removeEventListener(type, listener, options);
-        this.evtListenerCnt--;
-        if (!this.evtListenerCnt) {
-            this.ptrSurface.style.display = "none";
-        }
-    }
-    lockCursor(cursor) {
-        this.ptrSurface.style.cursor = cursor || "";
     }
 }
 class WindowManager {
@@ -98,13 +77,12 @@ class WindowManager {
         this.hooks = {};
         this.lastNoActive = true;
         this.sm = sm;
-        this.windowEl = windowEl;
-        this.addEventListener = this.windowEl.addEventListener.bind(this.windowEl);
-        this.removeEventListener = this.windowEl.removeEventListener.bind(this.windowEl);
-        this.addPtrEventListener = this.sm.addPtrEventListener.bind(this.sm);
-        this.removePtrEventListener = this.sm.removePtrEventListener.bind(this.sm);
-        this.lockCursor = this.sm.lockCursor.bind(this.sm);
-        this.dispatchEvent = this.windowEl.dispatchEvent.bind(this.windowEl);
+        this.div = windowEl;
+        this.addEventListener = this.div.addEventListener.bind(this.div);
+        this.removeEventListener = this.div.removeEventListener.bind(this.div);
+        this.addScrEventListener = this.sm.addEventListener.bind(this.sm);
+        this.removeScrEventListener = this.sm.removeEventListener.bind(this.sm);
+        this.dispatchEvent = this.div.dispatchEvent.bind(this.div);
     }
     lenWindows() {
         return this.windows.length;
@@ -127,7 +105,7 @@ class WindowManager {
         return this.hooks[target] || [];
     }
     bind(window, div) {
-        this.windowEl.appendChild(div);
+        this.div.appendChild(div);
         this.activate(null);
         this.windows.push(window);
         for (const hookFunc of this.getHooks("bind")) {
@@ -145,15 +123,10 @@ class WindowManager {
         return idx;
     }
     close(window) {
+        this.deactivate(window);
         const idx = this.findWindowIdxA(window);
         this.windows.splice(idx, 1);
         window._close();
-        if (!this.lastNoActive && this.windows.length) {
-            this.activate(this.windows[idx - 1]);
-        }
-        else {
-            this.activate(null);
-        }
         for (const hookFunc of this.getHooks("close")) {
             hookFunc(window);
         }
@@ -203,19 +176,28 @@ class WindowManager {
         this.activate(null);
     }
     /* friend */ get style() {
-        return this.windowEl.style;
+        return this.div.style;
     }
     get x() {
-        return this.windowEl.clientLeft;
+        return this.div.clientLeft;
     }
     get y() {
-        return this.windowEl.clientTop;
+        return this.div.clientTop;
     }
     get width() {
-        return this.windowEl.clientWidth;
+        return this.div.clientWidth;
     }
     get height() {
-        return this.windowEl.clientHeight;
+        return this.div.clientHeight;
+    }
+    lockCursor(cursor) {
+        this.div.style.cursor = cursor || "";
+    }
+    /* friend */ disable() {
+        (0, mdui_1.$)(this.div).addClass("disabled");
+    }
+    /* friend */ enable() {
+        (0, mdui_1.$)(this.div).removeClass("disabled");
     }
 }
 class BaseWindow {
@@ -403,9 +385,10 @@ class PkWindow extends BaseWindow {
         }
         this.dragOffsetX = evt.clientX - this.x;
         this.dragOffsetY = evt.clientY - this.y;
-        this.wm.addPtrEventListener("pointerup", this.dragStopHand);
-        this.wm.addPtrEventListener("pointerleave", this.dragStopHand);
-        this.wm.addPtrEventListener("pointermove", this.dragMoveHand);
+        this.wm.disable();
+        this.wm.addScrEventListener("pointerup", this.dragStopHand);
+        this.wm.addScrEventListener("pointerleave", this.dragStopHand);
+        this.wm.addScrEventListener("pointermove", this.dragMoveHand);
     }
     onwindragstop(evt) {
         evt.preventDefault();
@@ -423,9 +406,10 @@ class PkWindow extends BaseWindow {
                 this.titleClickCnt = 0;
             }
         }
-        this.wm.removePtrEventListener("pointermove", this.dragMoveHand);
-        this.wm.removePtrEventListener("pointerleave", this.dragStopHand);
-        this.wm.removePtrEventListener("pointerup", this.dragStopHand);
+        this.wm.enable();
+        this.wm.removeScrEventListener("pointermove", this.dragMoveHand);
+        this.wm.removeScrEventListener("pointerleave", this.dragStopHand);
+        this.wm.removeScrEventListener("pointerup", this.dragStopHand);
     }
     onwindragmove(evt) {
         evt.preventDefault();
@@ -449,16 +433,18 @@ class PkWindow extends BaseWindow {
         this.dragOffsetY = evt.clientY - this.y;
         this.origX2 = this.x + this.width;
         this.origY2 = this.y + this.height;
-        this.wm.addPtrEventListener("pointerup", this.resizeStopHand);
-        this.wm.addPtrEventListener("pointerleave", this.resizeStopHand);
-        this.wm.addPtrEventListener("pointermove", this.resizeMoveHand);
+        this.wm.disable();
+        this.wm.addScrEventListener("pointerup", this.resizeStopHand);
+        this.wm.addScrEventListener("pointerleave", this.resizeStopHand);
+        this.wm.addScrEventListener("pointermove", this.resizeMoveHand);
     }
     onwinresizestop(evt) {
         evt.preventDefault();
         this.wm.lockCursor(null);
-        this.wm.removePtrEventListener("pointermove", this.resizeMoveHand);
-        this.wm.removePtrEventListener("pointerleave", this.resizeStopHand);
-        this.wm.removePtrEventListener("pointerup", this.resizeStopHand);
+        this.wm.enable();
+        this.wm.removeScrEventListener("pointermove", this.resizeMoveHand);
+        this.wm.removeScrEventListener("pointerleave", this.resizeStopHand);
+        this.wm.removeScrEventListener("pointerup", this.resizeStopHand);
     }
     onwinresizemove(evt) {
         evt.preventDefault();

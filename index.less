@@ -17,7 +17,7 @@
     left: 0;
     background-color: steelblue;
     z-index: -10000;
-    cursor: grab;
+    cursor: pointer;
 }
 
 #taskbar {
@@ -26,7 +26,7 @@
 
     mdui-button-icon {
         background-color: rgb(var(--mdui-color-surface));
-    
+
         &[selected] {
             background-color: rgb(var(--mdui-color-inverse-primary));
         }
@@ -62,7 +62,7 @@
                 display: none;
             }
         }
-        
+
         mdui-button-icon {
             margin-left: .5rem;
             border: solid 0 rgb(var(--mdui-color-primary));
@@ -118,7 +118,7 @@
     width: 5rem;
     font-size: 110%;
     font-weight: 500;
-    
+
     mdui-icon {
         margin: 0 .2rem;
     }
@@ -140,7 +140,7 @@
     &.hidden {
         transition-timing-function: cubic-bezier(.4, 0, 1, .58);
     }
-    
+
     &#launcher {
         width: max(45%, 30rem);
         height: 85%;
@@ -170,25 +170,20 @@ mdui-top-app-bar[variant=tiny] {
         font-size: 1.3rem;
         margin-right: inherit;
     }
-    
+
     mdui-top-app-bar-title {
         font-size: 1.1rem;
         padding-left: .5rem;
     }
 }
 
-#screen, #windows, #screen > .ptrSurface {
+#screen, #windows {
     position: fixed;
     width: 100%;
     height: 100%;
     top: 0;
     left: 0;
-}
-
-#screen {
-    > .ptrSurface {
-        z-index: 1000000000;
-    }
+    touch-action: none;
 }
 
 #windows {
@@ -196,6 +191,13 @@ mdui-top-app-bar[variant=tiny] {
 
     > * {
         pointer-events: auto;
+    }
+
+    &.disabled {
+        pointer-events: auto;
+        * {
+            pointer-events: none;
+        }
     }
 
     > div {
@@ -224,7 +226,7 @@ mdui-top-app-bar[variant=tiny] {
         &.maximized {
             border: 0 solid rgb(var(--mdui-color-outline));
             border-radius: 0;
-            
+
             > .hands {
                 pointer-events: none;
             }
@@ -267,7 +269,7 @@ mdui-top-app-bar[variant=tiny] {
                 opacity: 0;
             }
         }
-        
+
         .titleBar {
             position: relative;
             touch-action: none;
@@ -280,7 +282,7 @@ mdui-top-app-bar[variant=tiny] {
             opacity: 1;
         }
 
-        > .hands {            
+        > .hands {
             // Hands:
             //   1 2 3
             //   4   6
@@ -290,45 +292,45 @@ mdui-top-app-bar[variant=tiny] {
             left: 0;
             width: 100%;
             height: 100%;
-        
+
             * {
                 position: absolute;
             }
-        
+
             .i1, .i4, .i7 {
                 left: (@hand / -2);
             }
-        
+
             .i3, .i6, .i9 {
                 right: (@hand / -2);
             }
-        
+
             .i4, .i6 {
                 top: (@hand / 2);
                 height: calc(100% - @hand);
             }
-        
+
             .i2, .i8 {
                 left: (@hand / 2);
                 width: calc(100% - @hand);
             }
-        
+
             .i1, .i4, .i7, .i3, .i6, .i9 {
                 width: @hand;
             }
-        
+
             .i1, .i2, .i3, .i7, .i8, .i9 {
                 height: @hand;
             }
-        
+
             .i1, .i2, .i3 {
                 top: (@hand / -2);
             }
-        
+
             .i7, .i8, .i9 {
                 bottom: (@hand / -2);
             }
-        
+
             .i1 { cursor: nw-resize; }
             .i2 { cursor: n-resize; }
             .i3 { cursor: ne-resize; }
@@ -352,7 +354,7 @@ mdui-top-app-bar[variant=tiny] {
             //     //     height: .4rem;
             //     //     background: none;
             //     // }
-    
+
             //     &::-webkit-scrollbar-thumb {
             //         background-color: rgb(var(--mdui-color-primary-container));
             //     }
