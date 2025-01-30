@@ -1,4 +1,4 @@
-import {$, ButtonIcon, JQ, Menu, TopAppBar, TopAppBarTitle} from 'mdui'
+import {$, ButtonIcon, CircularProgress, JQ, Menu, TopAppBar, TopAppBarTitle} from 'mdui'
 
 function containsOrEqual(parent: HTMLElement, child: HTMLElement) {
     return parent && child && (parent === child || $.contains(parent, child));
@@ -408,6 +408,7 @@ class PkWindow extends BaseWindow {
     protected titleBar: TopAppBar;
     protected titleBarTitle: TopAppBarTitle;
     protected content: HTMLIFrameElement;
+    protected loading: CircularProgress;
     protected dragOffsetX: number = 0;
     protected dragOffsetY: number = 0;
     protected dragStopHand = this.onwindragstop.bind(this);
@@ -425,7 +426,7 @@ class PkWindow extends BaseWindow {
     constructor(
             dm: WindowManager,
             x=20, y=20, width=400, height=300,
-            title="", state=0
+            title="", state=0, url=""
         ){
         super(dm, x, y, width, height, title, state);
         this.$div = $(this.div);
@@ -450,19 +451,24 @@ class PkWindow extends BaseWindow {
         }
         this.state = state;
 
+        this.loading = this.div.querySelector("mdui-circular-progress") as CircularProgress;
         this.content = this.div.querySelector(".content") as HTMLIFrameElement;
-        this.content.focus();
         $(this.content).on("load", () => {
+            $(this.loading).hide();
+            $(this.content).show();
+            this.content.focus();
             const win = this.content.contentWindow;
             if (!win) return;
             win.addEventListener("focus", ()=>{this.activate()});
             for (const evtN of ["keydown", "keyup"]) {
                 win.addEventListener(evtN, (evt) => {
-                    this.div.dispatchEvent(copyKbdEvent(evt as KeyboardEvent));
+                    if (!this.div.dispatchEvent(copyKbdEvent(evt as KeyboardEvent)))
+                        evt.preventDefault();
                 });
             }
             // win.pkUpdateTitle = () => {};
         })
+        this.loadPage(url);
 
         this.$div.one("animationend", () => {this.$div.removeClass("opening")});
         this.$div.addClass("pkWindow opening");
@@ -596,6 +602,7 @@ class PkWindow extends BaseWindow {
             });
         }
         this.$div.addClass("active");
+        this.content?.focus();
     }
 
     protected _maximize() {
@@ -640,6 +647,12 @@ class PkWindow extends BaseWindow {
         else {
             this.maximize();
         }
+    }
+
+    /* friend */ public loadPage(url: string){
+        $(this.loading).show();
+        $(this.content).hide();
+        this.content.src = url;
     }
 }
 
@@ -718,30 +731,37 @@ class Taskbar {
 /* ========== DWM Demo ========== */
 const SM = new SurfaceManager($("#screen")[0] as HTMLDivElement);
 const WM = new WindowManager(SM, $("#windows")[0] as HTMLDivElement);
-const window1 = new PkWindow(WM, 20, 20, 400, 300, "Window 1");
-const window2 = new PkWindow(WM, 20, 20, 400, 300, "Window 1");
+const window1 = new PkWindow(WM, 20, 20, 400, 300, "Window 1", 0, "demo.html");
+const window2 = new PkWindow(WM, 20, 20, 400, 300, "Window 1", 0, "demo.html");
 window2.title = "Window 2";
 window2.x = 100;
 window2.y = 100;
 window2.width = 500;
 window2.height = 400;
 const taskbar = new Taskbar(WM, $("#taskbar")[0] as HTMLDivElement);
-const window3 = new PkWindow(WM, 300, 300, 400, 300, "Window 3");
+const window3 = new PkWindow(WM, 300, 300, 400, 300, "Window 3", 0, "demo.html");
 
 let cnt=1;
 function randint(max: number) {
     return Math.floor(Math.random() * max);
 }
 $("#background").on("click", () => {
-    new PkWindow(WM, randint(window.innerWidth-300), randint(window.innerHeight-100), 300, 200, "Demo "+cnt);
+    new PkWindow(WM, randint(window.innerWidth-300), randint(window.innerHeight-100), 300, 200, "Demo "+cnt, 0, "demo.html");
     cnt++;
+});
+document.body.addEventListener("keydown", (evt: KeyboardEvent) => {
+    if (evt.key == "Escape" || evt.key == " ") {
+        evt.preventDefault();
+    }
 });
 document.body.addEventListener("keyup", (evt: KeyboardEvent) => {
     if (evt.key == "Escape") {
+        evt.preventDefault();
         const windows = WM.getWindows();
         if (windows.length) WM.close(windows[windows.length-1]);
     }
     else if (evt.key == " ") {
+        evt.preventDefault();
         $("#background")[0].click();
     }
 });

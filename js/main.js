@@ -331,7 +331,7 @@ class BaseWindow {
     }
 }
 class PkWindow extends BaseWindow {
-    constructor(dm, x = 20, y = 20, width = 400, height = 300, title = "", state = 0) {
+    constructor(dm, x = 20, y = 20, width = 400, height = 300, title = "", state = 0, url = "") {
         super(dm, x, y, width, height, title, state);
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
@@ -366,20 +366,25 @@ class PkWindow extends BaseWindow {
             (0, mdui_1.$)(hands.querySelector(".i" + i)).on("pointerdown", this.onwinresizestart.bind(this));
         }
         this.state = state;
+        this.loading = this.div.querySelector("mdui-circular-progress");
         this.content = this.div.querySelector(".content");
-        this.content.focus();
         (0, mdui_1.$)(this.content).on("load", () => {
+            (0, mdui_1.$)(this.loading).hide();
+            (0, mdui_1.$)(this.content).show();
+            this.content.focus();
             const win = this.content.contentWindow;
             if (!win)
                 return;
             win.addEventListener("focus", () => { this.activate(); });
             for (const evtN of ["keydown", "keyup"]) {
                 win.addEventListener(evtN, (evt) => {
-                    this.div.dispatchEvent(copyKbdEvent(evt));
+                    if (!this.div.dispatchEvent(copyKbdEvent(evt)))
+                        evt.preventDefault();
                 });
             }
             // win.pkUpdateTitle = () => {};
         });
+        this.loadPage(url);
         this.$div.one("animationend", () => { this.$div.removeClass("opening"); });
         this.$div.addClass("pkWindow opening");
     }
@@ -497,6 +502,7 @@ class PkWindow extends BaseWindow {
         this.$div.removeClass("active");
     }
     /* friend */ _activate() {
+        var _a;
         if (this.$div.hasClass("minimizedAni")) {
             requestAnimationFrame(() => { this.$div.removeClass("minimizedAni"); });
             this.$div.one("transitionend", () => {
@@ -504,6 +510,7 @@ class PkWindow extends BaseWindow {
             });
         }
         this.$div.addClass("active");
+        (_a = this.content) === null || _a === void 0 ? void 0 : _a.focus();
     }
     _maximize() {
         (0, mdui_1.$)(this.maximizeBtn).hide();
@@ -542,6 +549,11 @@ class PkWindow extends BaseWindow {
         else {
             this.maximize();
         }
+    }
+    /* friend */ loadPage(url) {
+        (0, mdui_1.$)(this.loading).show();
+        (0, mdui_1.$)(this.content).hide();
+        this.content.src = url;
     }
 }
 class Taskbar {
@@ -615,30 +627,37 @@ class Taskbar {
 /* ========== DWM Demo ========== */
 const SM = new SurfaceManager((0, mdui_1.$)("#screen")[0]);
 const WM = new WindowManager(SM, (0, mdui_1.$)("#windows")[0]);
-const window1 = new PkWindow(WM, 20, 20, 400, 300, "Window 1");
-const window2 = new PkWindow(WM, 20, 20, 400, 300, "Window 1");
+const window1 = new PkWindow(WM, 20, 20, 400, 300, "Window 1", 0, "demo.html");
+const window2 = new PkWindow(WM, 20, 20, 400, 300, "Window 1", 0, "demo.html");
 window2.title = "Window 2";
 window2.x = 100;
 window2.y = 100;
 window2.width = 500;
 window2.height = 400;
 const taskbar = new Taskbar(WM, (0, mdui_1.$)("#taskbar")[0]);
-const window3 = new PkWindow(WM, 300, 300, 400, 300, "Window 3");
+const window3 = new PkWindow(WM, 300, 300, 400, 300, "Window 3", 0, "demo.html");
 let cnt = 1;
 function randint(max) {
     return Math.floor(Math.random() * max);
 }
 (0, mdui_1.$)("#background").on("click", () => {
-    new PkWindow(WM, randint(window.innerWidth - 300), randint(window.innerHeight - 100), 300, 200, "Demo " + cnt);
+    new PkWindow(WM, randint(window.innerWidth - 300), randint(window.innerHeight - 100), 300, 200, "Demo " + cnt, 0, "demo.html");
     cnt++;
+});
+document.body.addEventListener("keydown", (evt) => {
+    if (evt.key == "Escape" || evt.key == " ") {
+        evt.preventDefault();
+    }
 });
 document.body.addEventListener("keyup", (evt) => {
     if (evt.key == "Escape") {
+        evt.preventDefault();
         const windows = WM.getWindows();
         if (windows.length)
             WM.close(windows[windows.length - 1]);
     }
     else if (evt.key == " ") {
+        evt.preventDefault();
         (0, mdui_1.$)("#background")[0].click();
     }
 });
