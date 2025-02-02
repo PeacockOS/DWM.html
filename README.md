@@ -4,7 +4,7 @@ A window manager written in HTML+TypeScript+Less.
 
 一个基于 HTML+TypeScript+Less 的窗口管理器。
 
-预览视频：To Be Uploaded
+预览视频：[BV1iSFkezE92](https://www.bilibili.com/video/BV1iSFkezE92/)
 
 ## Usage
 
